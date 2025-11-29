@@ -149,8 +149,8 @@ nombres_insumos = {
 }
 
 nombres_procesos = {
-    'PR001': 'Corte Tela', 'PR002': 'Costura Básica', 'PR003': 'Estampado',
-    'PR004': 'Acabados', 'PR005': 'Control Calidad'
+    'PR001': 'Corte Tela', 'PR002': 'Costura Básica', 'PR003': 'Bordado',
+    'PR004': 'Planchado', 'PR005': 'Empaquetado'
 }
 
 # Agregar información de años y meses a los datos de PM_MATRIX
@@ -1363,3 +1363,4 @@ st.sidebar.success("""
 - Salidas: Hojas RESULTADOS y RES_HORAS_EXTRA
 - Modelo: Optimización completa
 """)
+
