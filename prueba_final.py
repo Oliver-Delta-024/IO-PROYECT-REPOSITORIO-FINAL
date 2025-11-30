@@ -1320,42 +1320,18 @@ elif section == "🎯 Programación por Metas":
     **Programación por Metas**, que permite balancear múltiples objetivos estratégicos simultáneamente.
     """)
     
-    # Métricas clave del modelo de optimización
-    col1, col2, col3, col4 = st.columns(4)
+    # Resultados REALES del modelo LINGO
+    st.subheader("📊 Resultados del Modelo de Programación por Metas")
     
-    with col1:
-        if not data['RES_PRODUCCION'].empty:
-            produccion_total = data['RES_PRODUCCION']['Produccion'].sum()
-            st.metric("Producción Total Optimizada", f"{produccion_total:,.0f} uds")
-    
-    with col2:
-        if not data['RES_VENTAS'].empty:
-            ventas_total = data['RES_VENTAS']['Ventas'].sum()
-            st.metric("Ventas Totales Optimizadas", f"{ventas_total:,.0f} uds")
-    
-    with col3:
-        # Calcular utilidad aproximada (esto sería reemplazado por el valor real de LINGO)
-        utilidad_aproximada = 11256950
-        st.metric("Utilidad Total Estimada", format_currency(utilidad_aproximada))
-    
-    with col4:
-        if not data['RES_H_EXTRAS'].empty:
-            horas_extra_total = data['RES_H_EXTRAS']['HorasExtrasMinutos'].sum()
-            st.metric("Horas Extra Totales", f"{horas_extra_total:,.0f} min")
-    
-    st.markdown("---")
-    
-    # Simulación de metas (en un caso real, estos datos vendrían de LINGO)
-    st.subheader("📊 Cumplimiento de Metas Estratégicas")
-    
-    # Metas establecidas
+    # Metas establecidas en LINGO
     meta_utilidad = 12000000
     meta_he = 50000
     
-    # Desviaciones (simuladas - en realidad vendrían de LINGO)
-    falta_utilidad = max(0, meta_utilidad - utilidad_aproximada)
-    exceso_he = max(0, horas_extra_total - meta_he)
+    # Desviaciones REALES obtenidas de LINGO
+    falta_utilidad = 3422729.51   # D_UTIL_NEG
+    exceso_he = 25712344          # D_HE_POS
     
+    # Logros reales
     logro_utilidad = meta_utilidad - falta_utilidad
     logro_he = meta_he + exceso_he
 
@@ -1367,14 +1343,14 @@ elif section == "🎯 Programación por Metas":
             mode = "number+gauge+delta",
             value = logro_utilidad,
             domain = {'x': [0, 1], 'y': [0, 1]},
-            title = {'text': "Utilidad Acumulada ($)"},
-            delta = {'reference': meta_utilidad},
+            title = {'text': "Utilidad Alcanzada ($)"},
+            delta = {'reference': meta_utilidad, 'relative': False},
             gauge = {
-                'axis': {'range': [None, 15000000]},
+                'axis': {'range': [None, meta_utilidad * 1.2]},
                 'bar': {'color': "darkblue"},
                 'steps': [
-                    {'range': [0, 10000000], 'color': "lightgray"},
-                    {'range': [10000000, meta_utilidad], 'color': "lightgreen"}],
+                    {'range': [0, meta_utilidad * 0.8], 'color': "lightgray"},
+                    {'range': [meta_utilidad * 0.8, meta_utilidad], 'color': "lightgreen"}],
                 'threshold': {
                     'line': {'color': "red", 'width': 4},
                     'thickness': 0.75,
@@ -1382,12 +1358,15 @@ elif section == "🎯 Programación por Metas":
         fig_util.update_layout(height=300)
         st.plotly_chart(fig_util, use_container_width=True)
         
+        st.metric("Utilidad Alcanzada", format_currency(logro_utilidad), 
+                 delta=f"-{format_currency(falta_utilidad)}", delta_color="inverse")
+        st.metric("Meta de Utilidad", format_currency(meta_utilidad))
+        
         if falta_utilidad > 0:
-            st.warning(f"⚠️ No se alcanzó la meta por {format_currency(falta_utilidad)}")
+            st.error(f"❌ No se alcanzó la meta por {format_currency(falta_utilidad)}")
             st.info(f"**Cumplimiento:** {(logro_utilidad/meta_utilidad*100):.1f}%")
         else:
             st.success("✅ ¡Meta Financiera Cumplida!")
-            st.info(f"**Excedente:** {format_currency(-falta_utilidad)}")
 
     with col2:
         st.subheader("👷 Meta Laboral (Horas Extras)")
@@ -1395,7 +1374,7 @@ elif section == "🎯 Programación por Metas":
         fig_he = go.Figure(data=[
             go.Bar(name='Meta Máxima', x=['Horas Extras'], y=[meta_he], marker_color='green', width=0.3),
             go.Bar(name='Real Usado', x=['Horas Extras'], y=[logro_he], 
-                  marker_color='red' if exceso_he > 0 else 'blue', width=0.3)
+                  marker_color='red', width=0.3)
         ])
         fig_he.update_layout(
             title_text='Uso de Horas Extras (Minutos)',
@@ -1404,12 +1383,12 @@ elif section == "🎯 Programación por Metas":
         )
         st.plotly_chart(fig_he, use_container_width=True)
         
-        if exceso_he > 0:
-            st.error(f"❌ Se excedió el límite de fatiga laboral en {exceso_he:,.0f} minutos.")
-            st.info(f"**Exceso:** {(exceso_he/meta_he*100):.1f}% sobre la meta")
-        else:
-            st.success("✅ Operación dentro de los límites de bienestar laboral.")
-            st.info(f"**Ahorro:** {meta_he - logro_he:,.0f} minutos disponibles")
+        st.metric("Horas Extra Utilizadas", f"{logro_he:,.0f} min", 
+                 delta=f"+{exceso_he:,.0f} min", delta_color="inverse")
+        st.metric("Límite de Horas Extra", f"{meta_he:,.0f} min")
+        
+        st.error(f"❌ Se excedió el límite de fatiga laboral en {exceso_he:,.0f} minutos.")
+        st.info(f"**Exceso:** {(exceso_he/meta_he*100):.1f}% sobre la meta")
     
     # Análisis de trade-offs
     st.markdown("---")
@@ -1422,12 +1401,17 @@ elif section == "🎯 Programación por Metas":
         ### 🎯 Enfoque de Programación por Metas
         
         **Objetivos en Conflicto:**
-        - 📈 **Maximizar utilidades**
-        - 👷 **Minimizar horas extra**
-        - 📦 **Satisfacer demanda mínima**
-        - 💰 **Controlar costos de almacenamiento**
+        - 📈 **Maximizar utilidades** (Meta: $12,000,000)
+        - 👷 **Minimizar horas extra** (Meta: 50,000 min)
         
-        **Solución:** El modelo encuentra el balance óptimo que minimiza las desviaciones de todas las metas simultáneamente.
+        **Resultados del Modelo:**
+        - Utilidad Alcanzada: $8,577,270
+        - Horas Extra Utilizadas: 25,762,344 min
+        
+        **Interpretación:**
+        El modelo priorizó el bienestar laboral (peso 5) sobre la utilidad (peso 1), 
+        pero aun así se excedió enormemente en horas extra. Esto indica que las restricciones 
+        operativas y de demanda obligaron a usar horas extra masivamente.
         """)
     
     with col2:
@@ -1435,9 +1419,9 @@ elif section == "🎯 Programación por Metas":
         fig_tradeoff = go.Figure()
         
         # Puntos conceptuales de diferentes estrategias
-        estrategias = ['Solo Utilidad', 'Balanceado', 'Solo Bienestar']
-        utilidades = [13000000, 11256950, 9000000]
-        horas_extra = [80000, 52000, 30000]
+        estrategias = ['Solo Utilidad', 'Balanceado (Modelo)', 'Solo Bienestar']
+        utilidades = [13000000, logro_utilidad, 9000000]
+        horas_extra = [80000, logro_he, 30000]
         
         fig_tradeoff.add_trace(go.Scatter(
             x=horas_extra, y=utilidades, text=estrategias,
@@ -1461,7 +1445,8 @@ elif section == "🎯 Programación por Metas":
     cumplimiento_utilidad = (logro_utilidad / meta_utilidad * 100) if meta_utilidad > 0 else 0
     cumplimiento_he = (1 - min(exceso_he/meta_he, 1)) * 100 if meta_he > 0 else 100
     
-    puntuacion_general = (cumplimiento_utilidad * 0.7 + cumplimiento_he * 0.3)  # Ponderación
+    # Ponderación según la función objetivo (5:1 a favor de horas extra)
+    puntuacion_general = (cumplimiento_utilidad * 1 + cumplimiento_he * 5) / 6
     
     col1, col2, col3 = st.columns(3)
     
@@ -1472,35 +1457,44 @@ elif section == "🎯 Programación por Metas":
         st.metric("Cumplimiento Meta Horas Extra", f"{cumplimiento_he:.1f}%")
     
     with col3:
-        st.metric("Puntuación General", f"{puntuacion_general:.1f}%")
+        st.metric("Puntuación General Ponderada", f"{puntuacion_general:.1f}%")
     
     # Recomendaciones basadas en el análisis
     st.markdown("### 💡 Recomendaciones Estratégicas")
     
-    if falta_utilidad > 0 and exceso_he > 0:
-        st.warning("""
-        **Escenario: Baja Utilidad + Exceso de Horas Extra**
-        - 🔧 **Recomendación:** Revisar eficiencia operativa y redistribuir carga de trabajo
-        - 📊 **Acción:** Optimizar secuenciación de producción y mejorar métodos de trabajo
-        """)
-    elif falta_utilidad > 0:
-        st.info("""
-        **Escenario: Baja Utilidad + Horas Extra Controladas**
-        - 💰 **Recomendación:** Enfoque en estrategias comerciales y de precios
-        - 📈 **Acción:** Revisar mix de productos y estrategias de ventas
-        """)
-    elif exceso_he > 0:
-        st.info("""
-        **Escenario: Buena Utilidad + Exceso de Horas Extra**
-        - 👷 **Recomendación:** Invertir en capacidad productiva permanente
-        - 🏭 **Acción:** Evaluar expansión de planta o nueva maquinaria
-        """)
-    else:
-        st.success("""
-        **Escenario: Óptimo - Metas Cumplidas**
-        - 🎯 **Recomendación:** Mantener estrategia actual
-        - 🔄 **Acción:** Establecer metas más ambiciosas para próximo período
-        """)
+    st.warning("""
+    **Escenario: Baja Utilidad + Exceso Extremo de Horas Extra**
+    
+    **Diagnóstico:** 
+    - La empresa no pudo acercarse a la meta de utilidad y tuvo un exceso masivo de horas extra.
+    - Esto indica graves cuellos de botella en la capacidad productiva y posiblemente una demanda muy por encima de la capacidad.
+    
+    **Recomendaciones:**
+    - 🔧 **Inversión en Capacidad:** Urgente necesidad de expandir la capacidad productiva permanente.
+    - 📊 **Revisión de Metas:** Las metas actuales pueden ser poco realistas dadas las restricciones operativas.
+    - 🔄 **Revisión de Prioridades:** Repensar la ponderación de metas: ¿es realista priorizar tanto las horas extra si la demanda es tan alta?
+    - 🏭 **Automatización:** Evaluar inversiones en automatización para reducir la dependencia de horas extra.
+    """)
+    
+    # Explicación del modelo
+    st.markdown("---")
+    st.subheader("🔍 Explicación del Modelo LINGO")
+    
+    st.markdown("""
+    **Función Objetivo del Modelo:**
+    ```
+    MIN = (1 × D_UTIL_NEG) + (5 × D_HE_POS)
+    ```
+    
+    **Donde:**
+    - **D_UTIL_NEG**: Desviación negativa de la meta de utilidad (${falta_utilidad:,.2f})
+    - **D_HE_POS**: Desviación positiva de la meta de horas extra ({exceso_he:,.0f} min)
+    - **Pesos**: 5:1 a favor del bienestar laboral sobre la utilidad
+    
+    **Restricciones de Metas:**
+    1. Utilidad: Ingresos - Costos + D_UTIL_NEG - D_UTIL_POS = 12,000,000
+    2. Horas Extra: Total Minutos Extra + D_HE_NEG - D_HE_POS = 50,000
+    """)
 # Footer informativo
 st.markdown("---")
 st.markdown("### 📋 Resumen de Datos Cargados")
@@ -1552,6 +1546,7 @@ st.sidebar.success("""
 - Salidas: Hojas RESULTADOS y RES_HORAS_EXTRA
 - Modelo: Optimización completa
 """)
+
 
 
 
