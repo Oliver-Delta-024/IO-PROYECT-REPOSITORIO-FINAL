@@ -174,7 +174,7 @@ st.sidebar.title("📊 Navegación")
 section = st.sidebar.radio(
     "Selecciona una sección:",
     ["📈 Resumen General", "👕 Productos", "📦 Insumos", "⚙️ Procesos", 
-     "📊 Demanda y Mercado", "💰 Costos y Rentabilidad", "🔍 Modelo de Optimización", "🎯 Simulaciones"]
+     "📊 Demanda y Mercado", "💰 Costos y Rentabilidad", "🔍 Modelo de Optimización", "🎯 Simulaciones", "🎯 Programación por Metas"]
 )
 
 # Función para formatear números
@@ -1312,6 +1312,195 @@ else:
                                      annotation_text="Precio Simulado")
             st.plotly_chart(fig_sensibilidad, use_container_width=True)
 
+# ===== SECCIÓN 9: PROGRAMACIÓN POR METAS =====
+elif section == "🎯 Programación por Metas":
+    st.header("🎯 Análisis de Cumplimiento de Metas Estratégicas")
+    st.markdown("""
+    Este módulo evalúa el desempeño de la empresa frente a objetivos conflictivos utilizando el enfoque de 
+    **Programación por Metas**, que permite balancear múltiples objetivos estratégicos simultáneamente.
+    """)
+    
+    # Métricas clave del modelo de optimización
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        if not data['RES_PRODUCCION'].empty:
+            produccion_total = data['RES_PRODUCCION']['Produccion'].sum()
+            st.metric("Producción Total Optimizada", f"{produccion_total:,.0f} uds")
+    
+    with col2:
+        if not data['RES_VENTAS'].empty:
+            ventas_total = data['RES_VENTAS']['Ventas'].sum()
+            st.metric("Ventas Totales Optimizadas", f"{ventas_total:,.0f} uds")
+    
+    with col3:
+        # Calcular utilidad aproximada (esto sería reemplazado por el valor real de LINGO)
+        utilidad_aproximada = 11256950
+        st.metric("Utilidad Total Estimada", format_currency(utilidad_aproximada))
+    
+    with col4:
+        if not data['RES_H_EXTRAS'].empty:
+            horas_extra_total = data['RES_H_EXTRAS']['HorasExtrasMinutos'].sum()
+            st.metric("Horas Extra Totales", f"{horas_extra_total:,.0f} min")
+    
+    st.markdown("---")
+    
+    # Simulación de metas (en un caso real, estos datos vendrían de LINGO)
+    st.subheader("📊 Cumplimiento de Metas Estratégicas")
+    
+    # Metas establecidas
+    meta_utilidad = 12000000
+    meta_he = 50000
+    
+    # Desviaciones (simuladas - en realidad vendrían de LINGO)
+    falta_utilidad = max(0, meta_utilidad - utilidad_aproximada)
+    exceso_he = max(0, horas_extra_total - meta_he)
+    
+    logro_utilidad = meta_utilidad - falta_utilidad
+    logro_he = meta_he + exceso_he
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.subheader("💰 Meta Financiera")
+        fig_util = go.Figure(go.Indicator(
+            mode = "number+gauge+delta",
+            value = logro_utilidad,
+            domain = {'x': [0, 1], 'y': [0, 1]},
+            title = {'text': "Utilidad Acumulada ($)"},
+            delta = {'reference': meta_utilidad},
+            gauge = {
+                'axis': {'range': [None, 15000000]},
+                'bar': {'color': "darkblue"},
+                'steps': [
+                    {'range': [0, 10000000], 'color': "lightgray"},
+                    {'range': [10000000, meta_utilidad], 'color': "lightgreen"}],
+                'threshold': {
+                    'line': {'color': "red", 'width': 4},
+                    'thickness': 0.75,
+                    'value': meta_utilidad}}))
+        fig_util.update_layout(height=300)
+        st.plotly_chart(fig_util, use_container_width=True)
+        
+        if falta_utilidad > 0:
+            st.warning(f"⚠️ No se alcanzó la meta por {format_currency(falta_utilidad)}")
+            st.info(f"**Cumplimiento:** {(logro_utilidad/meta_utilidad*100):.1f}%")
+        else:
+            st.success("✅ ¡Meta Financiera Cumplida!")
+            st.info(f"**Excedente:** {format_currency(-falta_utilidad)}")
+
+    with col2:
+        st.subheader("👷 Meta Laboral (Horas Extras)")
+        # Gráfico de barras simple para comparar
+        fig_he = go.Figure(data=[
+            go.Bar(name='Meta Máxima', x=['Horas Extras'], y=[meta_he], marker_color='green', width=0.3),
+            go.Bar(name='Real Usado', x=['Horas Extras'], y=[logro_he], 
+                  marker_color='red' if exceso_he > 0 else 'blue', width=0.3)
+        ])
+        fig_he.update_layout(
+            title_text='Uso de Horas Extras (Minutos)',
+            yaxis_title="Minutos",
+            height=300
+        )
+        st.plotly_chart(fig_he, use_container_width=True)
+        
+        if exceso_he > 0:
+            st.error(f"❌ Se excedió el límite de fatiga laboral en {exceso_he:,.0f} minutos.")
+            st.info(f"**Exceso:** {(exceso_he/meta_he*100):.1f}% sobre la meta")
+        else:
+            st.success("✅ Operación dentro de los límites de bienestar laboral.")
+            st.info(f"**Ahorro:** {meta_he - logro_he:,.0f} minutos disponibles")
+    
+    # Análisis de trade-offs
+    st.markdown("---")
+    st.subheader("⚖️ Análisis de Trade-offs Estratégicos")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        ### 🎯 Enfoque de Programación por Metas
+        
+        **Objetivos en Conflicto:**
+        - 📈 **Maximizar utilidades**
+        - 👷 **Minimizar horas extra**
+        - 📦 **Satisfacer demanda mínima**
+        - 💰 **Controlar costos de almacenamiento**
+        
+        **Solución:** El modelo encuentra el balance óptimo que minimiza las desviaciones de todas las metas simultáneamente.
+        """)
+    
+    with col2:
+        # Gráfico de trade-off conceptual
+        fig_tradeoff = go.Figure()
+        
+        # Puntos conceptuales de diferentes estrategias
+        estrategias = ['Solo Utilidad', 'Balanceado', 'Solo Bienestar']
+        utilidades = [13000000, 11256950, 9000000]
+        horas_extra = [80000, 52000, 30000]
+        
+        fig_tradeoff.add_trace(go.Scatter(
+            x=horas_extra, y=utilidades, text=estrategias,
+            mode='markers+text', textposition='top center',
+            marker=dict(size=15, color=['red', 'blue', 'green'])
+        ))
+        
+        fig_tradeoff.update_layout(
+            title="Trade-off: Utilidad vs Horas Extra",
+            xaxis_title="Horas Extra (minutos)",
+            yaxis_title="Utilidad ($)",
+            height=400
+        )
+        st.plotly_chart(fig_tradeoff, use_container_width=True)
+    
+    # Resumen ejecutivo
+    st.markdown("---")
+    st.subheader("📋 Resumen Ejecutivo de Cumplimiento")
+    
+    # Calcular puntuación general de cumplimiento
+    cumplimiento_utilidad = (logro_utilidad / meta_utilidad * 100) if meta_utilidad > 0 else 0
+    cumplimiento_he = (1 - min(exceso_he/meta_he, 1)) * 100 if meta_he > 0 else 100
+    
+    puntuacion_general = (cumplimiento_utilidad * 0.7 + cumplimiento_he * 0.3)  # Ponderación
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric("Cumplimiento Meta Utilidad", f"{cumplimiento_utilidad:.1f}%")
+    
+    with col2:
+        st.metric("Cumplimiento Meta Horas Extra", f"{cumplimiento_he:.1f}%")
+    
+    with col3:
+        st.metric("Puntuación General", f"{puntuacion_general:.1f}%")
+    
+    # Recomendaciones basadas en el análisis
+    st.markdown("### 💡 Recomendaciones Estratégicas")
+    
+    if falta_utilidad > 0 and exceso_he > 0:
+        st.warning("""
+        **Escenario: Baja Utilidad + Exceso de Horas Extra**
+        - 🔧 **Recomendación:** Revisar eficiencia operativa y redistribuir carga de trabajo
+        - 📊 **Acción:** Optimizar secuenciación de producción y mejorar métodos de trabajo
+        """)
+    elif falta_utilidad > 0:
+        st.info("""
+        **Escenario: Baja Utilidad + Horas Extra Controladas**
+        - 💰 **Recomendación:** Enfoque en estrategias comerciales y de precios
+        - 📈 **Acción:** Revisar mix de productos y estrategias de ventas
+        """)
+    elif exceso_he > 0:
+        st.info("""
+        **Escenario: Buena Utilidad + Exceso de Horas Extra**
+        - 👷 **Recomendación:** Invertir en capacidad productiva permanente
+        - 🏭 **Acción:** Evaluar expansión de planta o nueva maquinaria
+        """)
+    else:
+        st.success("""
+        **Escenario: Óptimo - Metas Cumplidas**
+        - 🎯 **Recomendación:** Mantener estrategia actual
+        - 🔄 **Acción:** Establecer metas más ambiciosas para próximo período
+        """)
 # Footer informativo
 st.markdown("---")
 st.markdown("### 📋 Resumen de Datos Cargados")
@@ -1363,4 +1552,5 @@ st.sidebar.success("""
 - Salidas: Hojas RESULTADOS y RES_HORAS_EXTRA
 - Modelo: Optimización completa
 """)
+
 
