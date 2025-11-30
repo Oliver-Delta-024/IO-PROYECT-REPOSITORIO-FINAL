@@ -1172,7 +1172,7 @@ elif section == "🔍 Modelo de Optimización":
         st.info("Ejecute el modelo en LINGO para ver el resumen ejecutivo")
 
 # ===== SECCIÓN 8: SIMULACIONES =====
-else:
+elif section == "🎯 Simulaciones":
     st.header("🎯 Simulador de Escenarios")
     
     st.info("""
@@ -1552,5 +1552,6 @@ st.sidebar.success("""
 - Salidas: Hojas RESULTADOS y RES_HORAS_EXTRA
 - Modelo: Optimización completa
 """)
+
 
 
