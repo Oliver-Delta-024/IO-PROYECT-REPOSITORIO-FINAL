@@ -174,7 +174,7 @@ st.sidebar.title("📊 Navegación")
 section = st.sidebar.radio(
     "Selecciona una sección:",
     ["📈 Resumen General", "👕 Productos", "📦 Insumos", "⚙️ Procesos", 
-     "📊 Demanda y Mercado", "💰 Costos y Rentabilidad", "🔍 Modelo de Optimización", "🎯 Simulaciones", "🎯 Programación por Metas"]
+     "📊 Demanda y Mercado", "💰 Costos y Rentabilidad", "🔍 Modelo de Optimización", "🎯 Simulaciones", "🏁 Programación por Metas"]
 )
 
 # Función para formatear números
@@ -1546,6 +1546,7 @@ st.sidebar.success("""
 - Salidas: Hojas RESULTADOS y RES_HORAS_EXTRA
 - Modelo: Optimización completa
 """)
+
 
 
 
