@@ -1313,7 +1313,7 @@ elif section == "🎯 Simulaciones":
             st.plotly_chart(fig_sensibilidad, use_container_width=True)
 
 # ===== SECCIÓN 9: PROGRAMACIÓN POR METAS =====
-elif section == "🎯 Programación por Metas":
+elif section == "🏁 Programación por Metas":
     st.header("🎯 Análisis de Cumplimiento de Metas Estratégicas")
     st.markdown("""
     Este módulo evalúa el desempeño de la empresa frente a objetivos conflictivos utilizando el enfoque de 
@@ -1546,6 +1546,7 @@ st.sidebar.success("""
 - Salidas: Hojas RESULTADOS y RES_HORAS_EXTRA
 - Modelo: Optimización completa
 """)
+
 
 
 
